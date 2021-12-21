@@ -12,6 +12,8 @@ import BackButton from '../components/BackButton';
 import {theme} from '../core/theme';
 import {emailValidator} from '../helpers/emailValidator';
 import {passwordValidator} from '../helpers/passwordValidator';
+import {signInWithEmailAndPassword} from 'firebase/auth';
+import {auth} from '../../firebase';
 
 export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState({value: '', error: ''});
@@ -25,10 +27,15 @@ export default function LoginScreen({navigation}) {
       setPassword({...password, error: passwordError});
       return;
     }
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'Dashboard'}],
-    });
+
+    signInWithEmailAndPassword(auth, email.value, password.value)
+      .then(userCredentials => {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Dashboard'}],
+        });
+      })
+      .catch(error => alert(error.message));
   };
 
   return (

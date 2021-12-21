@@ -3,7 +3,9 @@ import React from 'react';
 import Background from '../components/Background';
 import {FlatGrid, SectionGrid} from 'react-native-super-grid';
 import {StyleSheet, TouchableOpacity} from 'react-native';
-import {Text} from 'react-native-paper';
+import {Text, Avatar} from 'react-native-paper';
+import {auth} from '../../firebase';
+import {onAuthStateChanged} from 'firebase/auth';
 
 export default function Dashboard({navigation}) {
   const [items, setItems] = React.useState([
@@ -16,8 +18,25 @@ export default function Dashboard({navigation}) {
     {name: 'Custom services', code: '#27ae60'},
     {name: 'Interios', code: '#2980b9'},
   ]);
+  const [user, setUser] = React.useState({
+    displayName:'',
+    email:'',
+  });
+  onAuthStateChanged(auth, currentUser => {
+    setUser(currentUser);
+  });
+  console.log('user', user);
   return (
     <Background>
+      <TouchableOpacity
+        style={styles.avatar}
+        onPress={() => navigation.navigate('Profile')}>
+        <Avatar.Text
+          size={40}
+          labelStyle={styles.avatarLabel}
+          label={user.displayName && user.displayName[0]}
+        />
+      </TouchableOpacity>
       <Text style={styles.text}>Our Services</Text>
       <FlatGrid
         itemDimension={130}
@@ -34,16 +53,6 @@ export default function Dashboard({navigation}) {
           </TouchableOpacity>
         )}
       />
-      {/* <Button
-        mode="outlined"
-        onPress={() =>
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'StartScreen'}],
-          })
-        }>
-        Logout
-      </Button> */}
     </Background>
   );
 }
@@ -53,8 +62,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flex: 1,
   },
-  text: {
+  avatar: {
     marginTop: 50,
+    alignSelf: 'flex-end',
+  },
+  avatarLabel: {
+    color: '#fff',
+  },
+  text: {
+    // marginTop: 50,
     fontSize: 21,
     fontWeight: 'bold',
     paddingVertical: 12,

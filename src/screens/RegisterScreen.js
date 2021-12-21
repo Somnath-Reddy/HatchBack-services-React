@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 
 import React, {useState} from 'react';
-import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import {Text} from 'react-native-paper';
 import Background from '../components/Background';
 import Logo from '../components/Logo';
@@ -13,6 +13,9 @@ import {theme} from '../core/theme';
 import {emailValidator} from '../helpers/emailValidator';
 import {passwordValidator} from '../helpers/passwordValidator';
 import {nameValidator} from '../helpers/nameValidator';
+import {createUserWithEmailAndPassword, updateProfile} from 'firebase/auth';
+import {auth, db} from '../../firebase';
+import {collection, addDoc} from 'firebase/firestore';
 
 export default function RegisterScreen({navigation}) {
   const [name, setName] = useState({value: '', error: ''});
@@ -29,10 +32,25 @@ export default function RegisterScreen({navigation}) {
       setPassword({...password, error: passwordError});
       return;
     }
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'Dashboard'}],
-    });
+
+    createUserWithEmailAndPassword(auth, email.value, password.value)
+      .then(userCredentials => {
+        updateProfile(auth.currentUser, {
+          displayName: name.value,
+          // photoURL: "https://example.com/jane-q-user/profile.jpg"
+        });
+        addDoc(collection(db, 'users'), {
+          owner_uid: userCredentials.user.uid,
+          username: name.value,
+          email: userCredentials.user.email,
+        }).then(response => {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Dashboard'}],
+          });
+        });
+      })
+      .catch(error => alert(error.message));
   };
 
   return (
